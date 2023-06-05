@@ -9,7 +9,7 @@ import {
   Button,
 } from './ContactForm.styled';
 
-function ContactForm() {
+function ContactForm({ onSubmit }) {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
 
@@ -18,6 +18,7 @@ function ContactForm() {
 
   const handleInputChange = event => {
     const { name, value } = event.currentTarget;
+
     switch (name) {
       case 'name':
         setName(value);
@@ -30,9 +31,9 @@ function ContactForm() {
     }
   };
 
-  const handleSubmit = event => {
-    event.preventDefault();
-    createUser({ name, number });
+  const handleSubmit = e => {
+    e.preventDefault();
+    onSubmit({ name, number });
     reset();
   };
 

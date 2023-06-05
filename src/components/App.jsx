@@ -1,45 +1,40 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import { Container, Section, Title } from './App.styled';
 import ContactForm from './ContactForm/ContactForm';
 import ContactList from './ContactList/ContactList';
 import Filter from './Filter/Filter';
 
-class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-    name: '',
-    number: '',
-  };
+function App() {
+  const [contacts, setContacts] = useState([
+    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ]);
+  const [filter, setFilter] = useState('');
+
+  // первірка localstorage на наявність контактів
+
+  useEffect(() => {
+    const localContacts = localStorage.getItem('contacts');
+    const parsedContacts = JSON.parse(localContacts);
+    if (parsedContacts) {
+      setContacts(parsedContacts);
+    }
+  }, []);
 
   //Збереження в локал сторідж
 
-  componentDidUpdate( prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contactsLocalStorage', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  componentDidMount() {
-    const contact = localStorage.getItem('contactsLocalStorage');
-    const parseContact = JSON.parse(contact);
-    if (parseContact) {
-      this.setState({ contacts: parseContact });
-    }
-  }
-
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
   // Додає контакт у список
 
-  addContact = ({ name, number }) => {
+  const addContact = ({ name, number }) => {
     const normalizedFind = name.toLowerCase();
-    const findName = this.state.contacts.find(
+    const findName = contacts.find(
       contact => contact.name.toLowerCase() === normalizedFind
     );
     if (findName) {
@@ -53,52 +48,46 @@ class App extends Component {
       return alert(`This phone number is already in use.`);
     }
 
-    this.setState(({ contacts }) => ({
+    setContacts(({ contacts }) => ({
       contacts: [{ name, number, id: nanoid() }, ...contacts],
     }));
   };
 
   // видаляє контакт
 
-  deleteContact = contactId => {
-    this.setState(prev => ({
-      contacts: prev.contacts.filter(contact => contact.id !== contactId),
-    }));
+  const deleteContact = contactId => {
+    setContacts(contacts =>
+      contacts.filter(contact => contact.id !== contactId)
+    );
   };
 
-  handleFilter = e => {
-    this.setState({ filter: e.currentTarget.value });
+  const handleFilter = e => {
+    setFilter({ filter: e.currentTarget.value });
   };
 
   // фільтрація по імені
 
-  filterList = () => {
-    const { filter, contacts } = this.state;
+  const filterList = () => {
     const normalValue = filter.toLowerCase().trim();
     return contacts.filter(contact =>
       contact.name.toLowerCase().includes(normalValue)
     );
   };
 
-  render() {
-    return (
-      <Container>
-        <Section title="Phonebook">
-          <Title>Phonebook</Title>
-          <ContactForm createUser={this.addContact} />
-        </Section>
+  return (
+    <Container>
+      <Section title="Phonebook">
+        <Title>Phonebook</Title>
+        <ContactForm onSubmit={addContact} />
+      </Section>
 
-        <Section title="Contacts">
-          <Title>Contacts</Title>
-          <Filter value={this.filter} onChange={this.handleFilter} />
-          <ContactList
-            contacts={this.filterList()}
-            onDeleteContact={this.deleteContact}
-          />
-        </Section>
-      </Container>
-    );
-  }
+      <Section title="Contacts">
+        <Title>Contacts</Title>
+        <Filter value={filter} onChange={handleFilter} />
+        <ContactList contacts={filterList} onDeleteContact={deleteContact} />
+      </Section>
+    </Container>
+  );
 }
 
 export default App;
