@@ -21,7 +21,7 @@ function App() {
     const parsedContacts = JSON.parse(localContacts);
     if (parsedContacts) {
       setContacts(parsedContacts);
-    }
+    } else return;
   }, []);
 
   //Збереження в локал сторідж
@@ -41,16 +41,18 @@ function App() {
       return alert(`${name} is already in contacts`);
     }
 
-    const findNumber = this.state.contacts.find(
-      contact => contact.number === number
-    );
+    const findNumber = contacts.find(contact => contact.number === number);
     if (findNumber) {
       return alert(`This phone number is already in use.`);
     }
 
-    setContacts(({ contacts }) => ({
-      contacts: [{ name, number, id: nanoid() }, ...contacts],
-    }));
+    const newContact = {
+      id: nanoid(),
+      name,
+      number,
+    };
+
+    setContacts(contacts => [...contacts, newContact]);
   };
 
   // видаляє контакт
@@ -62,7 +64,7 @@ function App() {
   };
 
   const handleFilter = e => {
-    setFilter({ filter: e.currentTarget.value });
+    setFilter(e.currentTarget.value);
   };
 
   // фільтрація по імені
@@ -74,6 +76,8 @@ function App() {
     );
   };
 
+  const visibleContacts = filterList();
+
   return (
     <Container>
       <Section title="Phonebook">
@@ -84,7 +88,10 @@ function App() {
       <Section title="Contacts">
         <Title>Contacts</Title>
         <Filter value={filter} onChange={handleFilter} />
-        <ContactList contacts={filterList} onDeleteContact={deleteContact} />
+        <ContactList
+          contacts={visibleContacts}
+          onDeleteContact={deleteContact}
+        />
       </Section>
     </Container>
   );
